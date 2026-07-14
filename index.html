@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JavaScriptとその仲間たち — React / Next.js / Node.js の関係</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1c2230;
+    --ink-soft:#5a6172;
+    --paper:#fbfbf6;
+    --card:#ffffff;
+    --line:#e4e2d8;
+    --js:#f7df1e;
+    --js-deep:#c9b400;
+    --react:#3fc4ec;
+    --react-deep:#1699c4;
+    --next:#1c2230;
+    --node:#3c873a;
+    --radius:20px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Zen Kaku Gothic New',"Hiragino Kaku Gothic ProN",sans-serif;
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.9;
+  }
+  h1,h2,h3,.circle-label{font-family:'Zen Maru Gothic','Zen Kaku Gothic New',sans-serif;}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:0 24px;}
+
+  /* ---------- header ---------- */
+  header{padding:56px 0 8px;}
+  .eyebrow{
+    display:inline-block;
+    background:var(--js);
+    color:var(--ink);
+    font-weight:700;
+    font-size:13px;
+    padding:4px 14px;
+    border-radius:999px;
+    letter-spacing:.08em;
+  }
+  h1{
+    font-size:clamp(28px,4.5vw,44px);
+    font-weight:900;
+    margin-top:16px;
+    line-height:1.4;
+  }
+  h1 .marker{
+    background:linear-gradient(transparent 62%, var(--js) 62%);
+  }
+  .lead{
+    margin-top:12px;
+    color:var(--ink-soft);
+    max-width:640px;
+    font-size:15px;
+  }
+
+  /* ---------- hero: diagram + panel ---------- */
+  .hero{
+    display:grid;
+    grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);
+    gap:32px;
+    align-items:center;
+    padding:32px 0 56px;
+  }
+  @media(max-width:820px){
+    .hero{grid-template-columns:1fr;}
+  }
+  .diagram-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:16px;
+    box-shadow:0 12px 32px rgba(28,34,48,.06);
+  }
+  .diagram-hint{
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-soft);
+    padding:6px 0 4px;
+  }
+  svg{display:block;width:100%;height:auto;}
+  .clickable{cursor:pointer;transition:transform .25s ease, filter .25s ease;transform-box:fill-box;transform-origin:center;}
+  .clickable:hover{transform:scale(1.04);}
+  .clickable.active{filter:drop-shadow(0 6px 14px rgba(28,34,48,.25));}
+  .circle-label{font-weight:700;}
+  @media (prefers-reduced-motion: reduce){
+    .clickable, .clickable:hover{transition:none;transform:none;}
+  }
+
+  .detail{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px;
+    border-top:6px solid var(--js);
+    min-height:300px;
+  }
+  .detail .tag{
+    display:inline-block;
+    font-size:12px;
+    font-weight:700;
+    padding:2px 12px;
+    border-radius:999px;
+    border:1.5px solid currentColor;
+    margin-bottom:10px;
+  }
+  .detail h2{font-size:24px;font-weight:900;}
+  .detail p{margin-top:10px;font-size:14.5px;color:var(--ink-soft);}
+  .detail .point{
+    margin-top:14px;
+    background:var(--paper);
+    border-radius:12px;
+    padding:12px 16px;
+    font-size:13.5px;
+  }
+  .detail .point b{display:block;font-size:12px;letter-spacing:.06em;color:var(--ink-soft);margin-bottom:2px;}
+
+  /* ---------- analogy ---------- */
+  section{padding:48px 0;}
+  h2.sec{
+    font-size:clamp(22px,3vw,30px);
+    font-weight:900;
+    margin-bottom:8px;
+  }
+  .sec-lead{color:var(--ink-soft);font-size:14.5px;max-width:640px;margin-bottom:28px;}
+  .cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:16px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:22px;
+    border-top:5px solid var(--accent,var(--js));
+  }
+  .card .emoji{font-size:28px;}
+  .card h3{font-size:17px;font-weight:700;margin-top:8px;}
+  .card .role{font-size:12px;font-weight:700;color:var(--accent-text,var(--js-deep));letter-spacing:.04em;}
+  .card p{font-size:13.5px;color:var(--ink-soft);margin-top:8px;}
+
+  /* ---------- table ---------- */
+  .table-wrap{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px;}
+  th,td{padding:14px 18px;text-align:left;border-bottom:1px solid var(--line);}
+  thead th{
+    background:var(--ink);color:#fff;font-weight:700;font-size:13px;letter-spacing:.05em;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  td:first-child{font-weight:700;white-space:nowrap;}
+  .chip{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:8px;vertical-align:1px;}
+
+  /* ---------- misconception ---------- */
+  .myth{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:24px 28px;
+    display:flex;
+    gap:16px;
+    align-items:flex-start;
+  }
+  .myth + .myth{margin-top:14px;}
+  .myth .x{
+    flex:none;width:36px;height:36px;border-radius:50%;
+    background:var(--js);display:grid;place-items:center;font-weight:900;
+  }
+  .myth h3{font-size:15.5px;font-weight:700;}
+  .myth p{font-size:13.5px;color:var(--ink-soft);margin-top:4px;}
+
+  footer{
+    padding:40px 0 56px;
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:12.5px;
+  }
+</style>
+</head>
+<body>
+
+<header class="wrap">
+  <span class="eyebrow">JavaScript 超入門</span>
+  <h1>React も Next.js も Node.js も、<br>ぜんぶ <span class="marker">JavaScript の世界の中</span>にある</h1>
+  <p class="lead">「JavaScript と React って何が違うの?」——初心者がいちばん最初につまずくこの疑問を、1枚の図で解決します。円をタップ(クリック)すると、それぞれの説明が右に表示されます。</p>
+</header>
+
+<div class="wrap hero">
+  <div class="diagram-card">
+    <svg viewBox="0 0 560 520" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="大きなJavaScriptの円の中に、React・Next.js・Node.jsの小さな円が含まれている図">
+      <!-- 大きな円 = JavaScript -->
+      <circle id="c-js" class="clickable" cx="280" cy="268" r="238" fill="#f7df1e" stroke="#c9b400" stroke-width="3" data-key="js"/>
+      <text x="280" y="72" text-anchor="middle" class="circle-label" font-size="26" fill="#1c2230" pointer-events="none">JavaScript</text>
+      <text x="280" y="94" text-anchor="middle" font-size="13" fill="#6b6210" pointer-events="none">プログラミング言語(すべての土台)</text>
+
+      <!-- React -->
+      <g id="c-react" class="clickable" data-key="react">
+        <circle cx="185" cy="250" r="88" fill="#3fc4ec" stroke="#1699c4" stroke-width="3"/>
+        <text x="185" y="246" text-anchor="middle" class="circle-label" font-size="21" fill="#0b3947">React</text>
+        <text x="185" y="268" text-anchor="middle" font-size="11.5" fill="#0b3947">UIライブラリ</text>
+      </g>
+
+      <!-- Next.js (Reactに寄り添う) -->
+      <g id="c-next" class="clickable" data-key="next">
+        <circle cx="345" cy="310" r="78" fill="#1c2230" stroke="#000" stroke-width="3"/>
+        <text x="345" y="306" text-anchor="middle" class="circle-label" font-size="19" fill="#ffffff">Next.js</text>
+        <text x="345" y="328" text-anchor="middle" font-size="11" fill="#c9cdd6">Reactの<tspan font-weight="700">フレームワーク</tspan></text>
+      </g>
+
+      <!-- Node.js -->
+      <g id="c-node" class="clickable" data-key="node">
+        <circle cx="290" cy="440" r="58" fill="#3c873a" stroke="#2a6128" stroke-width="3"/>
+        <text x="290" y="437" text-anchor="middle" class="circle-label" font-size="16" fill="#ffffff">Node.js</text>
+        <text x="290" y="455" text-anchor="middle" font-size="10.5" fill="#dcefdb">実行環境</text>
+      </g>
+
+      <!-- ReactとNext.jsをつなぐ点線 -->
+      <line x1="255" y1="285" x2="285" y2="295" stroke="#1c2230" stroke-width="2.5" stroke-dasharray="5 5" opacity=".5"/>
+    </svg>
+    <p class="diagram-hint">▲ 円をクリックすると説明が切り替わります</p>
+  </div>
+
+  <div class="detail" id="detail">
+    <!-- JSで差し替え -->
+  </div>
+</div>
+
+<section class="wrap">
+  <h2 class="sec">たとえるなら「料理」の世界</h2>
+  <p class="sec-lead">4つの関係は、料理にたとえるとイメージしやすくなります。全員が「JavaScript という同じ言語」の上に成り立っている、という点がポイントです。</p>
+  <div class="cards">
+    <div class="card" style="--accent:#f7df1e; --accent-text:#a89400;">
+      <div class="emoji">🔪</div>
+      <p class="role">言語 = 調理の基本技術</p>
+      <h3>JavaScript</h3>
+      <p>「切る・焼く・煮る」のような基本技術そのもの。これがないと何も作れない、すべての土台です。</p>
+    </div>
+    <div class="card" style="--accent:#3fc4ec; --accent-text:#1699c4;">
+      <div class="emoji">🍳</div>
+      <p class="role">ライブラリ = 便利な調理器具</p>
+      <h3>React</h3>
+      <p>画面(UI)を効率よく組み立てるための便利な道具セット。使うかどうかは自由ですが、あると圧倒的にラクです。</p>
+    </div>
+    <div class="card" style="--accent:#1c2230; --accent-text:#1c2230;">
+      <div class="emoji">🏠</div>
+      <p class="role">フレームワーク = システムキッチン</p>
+      <h3>Next.js</h3>
+      <p>React という調理器具に、コンロ・収納・動線まで最初から揃えた「型」。決められた作法に従えば、本格的なWebアプリが早く作れます。</p>
+    </div>
+    <div class="card" style="--accent:#3c873a; --accent-text:#3c873a;">
+      <div class="emoji">🏭</div>
+      <p class="role">実行環境 = 家の外のキッチン</p>
+      <h3>Node.js</h3>
+      <p>本来ブラウザの中でしか動けなかった JavaScript を、サーバー(PC)側でも動かせるようにする仕組みです。</p>
+    </div>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 class="sec">ひと目でわかる比較表</h2>
+  <p class="sec-lead">「種類」の列に注目してください。React・Next.js・Node.js は言語ではなく、JavaScript を活用するための道具や環境です。</p>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>名前</th><th>種類</th><th>主な役割</th><th>動く場所</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="chip" style="background:#f7df1e"></span>JavaScript</td>
+          <td>プログラミング言語</td>
+          <td>すべての土台。文法・変数・関数など</td>
+          <td>ブラウザ / サーバー</td>
+        </tr>
+        <tr>
+          <td><span class="chip" style="background:#3fc4ec"></span>React</td>
+          <td>ライブラリ</td>
+          <td>UI(画面の部品)を効率よく作る</td>
+          <td>主にブラウザ</td>
+        </tr>
+        <tr>
+          <td><span class="chip" style="background:#1c2230"></span>Next.js</td>
+          <td>フレームワーク</td>
+          <td>React を使ったWebアプリを丸ごと作る(ルーティング・SSRなど)</td>
+          <td>ブラウザ + サーバー</td>
+        </tr>
+        <tr>
+          <td><span class="chip" style="background:#3c873a"></span>Node.js</td>
+          <td>実行環境</td>
+          <td>ブラウザの外(サーバー)で JavaScript を動かす</td>
+          <td>サーバー / PC</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="wrap">
+  <h2 class="sec">よくある勘違い</h2>
+  <p class="sec-lead">初心者がつまずきやすいポイントを先回りで解消しておきましょう。</p>
+  <div class="myth">
+    <div class="x">?</div>
+    <div>
+      <h3>「React 言語」「Next.js 言語」という言語がある?</h3>
+      <p>ありません。React も Next.js も、書いているコードはあくまで JavaScript(+ TypeScript)です。だから図でも、大きな JavaScript の円の「中」に描かれています。</p>
+    </div>
+  </div>
+  <div class="myth">
+    <div class="x">?</div>
+    <div>
+      <h3>React と Next.js はライバル関係?</h3>
+      <p>むしろ親子のような関係です。Next.js は React の上に作られたフレームワークなので、Next.js を使うときは自動的に React も使っています(図の点線がその関係です)。</p>
+    </div>
+  </div>
+  <div class="myth">
+    <div class="x">?</div>
+    <div>
+      <h3>Node.js はブラウザで動く?</h3>
+      <p>逆です。Node.js は「ブラウザの外」で JavaScript を動かすためのもの。Next.js のサーバー側の処理も、この Node.js の上で動いています。</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  まずは土台の JavaScript から。円の内側の道具たちは、その後で必ず理解できるようになります 💪
+</footer>
+
+<script>
+  const DATA = {
+    js: {
+      color: "#c9b400",
+      border: "#f7df1e",
+      tag: "プログラミング言語",
+      title: "JavaScript",
+      body: "Webページに動きをつけるために生まれたプログラミング言語。ボタンを押したら何かが起きる、入力内容をチェックする——そんな処理はすべて JavaScript が担当します。React も Next.js も Node.js も、この言語の上に成り立っています。",
+      point: "図の大きな円 = 言語そのもの。他のすべてを包み込む「土台」です。"
+    },
+    react: {
+      color: "#1699c4",
+      border: "#3fc4ec",
+      tag: "ライブラリ",
+      title: "React",
+      body: "Meta(旧Facebook)が作った、UI(画面)を組み立てるためのライブラリ。画面を「コンポーネント」という部品に分けて作れるので、大きなアプリでも整理しながら開発できます。書いている中身は JavaScript です。",
+      point: "「画面づくり専用の便利道具」。言語ではなく、JavaScript で書かれた道具セットです。"
+    },
+    next: {
+      color: "#1c2230",
+      border: "#1c2230",
+      tag: "フレームワーク",
+      title: "Next.js",
+      body: "React をベースに、ページ遷移(ルーティング)・サーバーサイドレンダリング(SSR)・画像最適化など、Webアプリに必要な機能をまとめて提供するフレームワーク。「React で本格的なサイトを作るならこれ」という定番です。",
+      point: "React の円のすぐ隣に描いたのは、Next.js が React の上に作られているから。"
+    },
+    node: {
+      color: "#3c873a",
+      border: "#3c873a",
+      tag: "実行環境",
+      title: "Node.js",
+      body: "JavaScript は元々ブラウザの中でしか動けませんでした。Node.js はそれをブラウザの外——つまりサーバーや自分のPC——でも動かせるようにした実行環境です。npm でライブラリを入れたり、開発サーバーを起動したりするのも Node.js の仕事です。",
+      point: "「JavaScript が動ける場所を広げた」存在。Next.js のサーバー処理もこの上で動きます。"
+    }
+  };
+
+  const detail = document.getElementById("detail");
+
+  function render(key){
+    const d = DATA[key];
+    detail.style.borderTopColor = d.border;
+    detail.innerHTML = `
+      <span class="tag" style="color:${d.color}">${d.tag}</span>
+      <h2>${d.title}</h2>
+      <p>${d.body}</p>
+      <div class="point"><b>図でのポイント</b>${d.point}</div>
+    `;
+    document.querySelectorAll(".clickable").forEach(el => {
+      el.classList.toggle("active", el.dataset.key === key || el.id === "c-" + key);
+    });
+  }
+
+  document.querySelectorAll(".clickable").forEach(el => {
+    el.addEventListener("click", () => render(el.dataset.key));
+  });
+
+  render("js");
+</script>
+</body>
+</html>
